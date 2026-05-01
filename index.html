@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>CookCoin Delivery Tycoon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:#020617;
+    font-family:Arial, sans-serif;
+    color:#e5e7eb;
+    overflow:hidden;
+    touch-action:none;
+  }
+  #game{
+    width:100vw;
+    height:100vh;
+    position:relative;
+  }
+
+  /* KITCHEN */
+  #kitchen{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:20px;
+    background:linear-gradient(#1f2937,#020617);
+    transition:background 0.5s;
+  }
+  #kitchen.night{
+    background:radial-gradient(circle at top,#0f172a,#020617);
+  }
+  #kitchen h1{font-size:26px;margin-bottom:6px;}
+  #kitchen p{font-size:13px;opacity:0.85;}
+
+  #counter{
+    margin-top:18px;
+    width:80%;
+    max-width:420px;
+    height:80px;
+    background:#020617;
+    border-radius:12px;
+    border:2px solid #22d3ee;
+    box-shadow:0 0 18px #22d3ee55;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    padding:8px;
+  }
+
+  #wantedWall{
+    position:absolute;
+    top:10px;
+    left:10px;
+    background:#b91c1c;
+    color:#fee2e2;
+    padding:6px 10px;
+    border-radius:8px;
+    font-size:11px;
+    box-shadow:0 0 12px #b91c1c;
+  }
+
+  #eventBanner{
+    position:absolute;
+    top:10px;
+    left:50%;
+    transform:translateX(-50%);
+    background:#0f172acc;
+    border-radius:999px;
+    padding:6px 14px;
+    font-size:12px;
+    border:1px solid #22d3ee;
+    max-width:80%;
+    text-align:center;
+    display:none;
+  }
+
+  /* HUD */
+  #hud{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:#020617cc;
+    border-radius:10px;
+    border:1px solid #22d3ee;
+    padding:6px 10px;
+    font-size:11px;
+  }
+  #hud div{margin:2px 0;}
+
+  /* PHONE ICON */
+  #phone{
+    position:absolute;
+    bottom:20px;
+    right:20px;
+    width:90px;
+    height:140px;
+    background:#020617;
+    border-radius:16px;
+    border:3px solid #22d3ee;
+    box-shadow:0 0 18px #22d3ee;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:13px;
+  }
+
+  /* SUPPLY BUTTON */
+  #supplyBtn{
+    position:absolute;
+    bottom:20px;
+    left:20px;
+    padding:10px 14px;
+    border-radius:10px;
+    border:none;
+    background:#facc15;
+    color:#1f2937;
+    font-size:13px;
+    display:none;
+    box-shadow:0 0 12px #facc15aa;
+  }
+
+  /* PHONE SCREEN */
+  #phoneScreen{
+    position:absolute;
+    inset:0;
+    background:#020617f0;
+    display:none;
+    flex-direction:column;
+    padding:14px;
+  }
+  #phoneHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+    font-size:13px;
+  }
+  #phoneTabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+  }
+  .tabBtn{
+    flex:1;
+    padding:7px;
+    border-radius:8px;
+    border:1px solid #22d3ee;
+    background:#020617;
+    font-size:12px;
+  }
+  .tabBtn.active{
+    background:#22d3ee;
+    color:#020617;
+  }
+  #phoneBody{
+    flex:1;
+    background:#020617;
+    border-radius:10px;
+    border:1px solid #1f2937;
+    padding:8px;
+    overflow-y:auto;
+    font-size:13px;
+  }
+
+  .btn{
+    padding:8px 12px;
+    border-radius:8px;
+    border:none;
+    font-size:13px;
+    margin-top:8px;
+  }
+  .btnPrimary{
+    background:#22c55e;
+    color:#022c22;
+    box-shadow:0 0 10px #22c55eaa;
+  }
+  .btnDanger{
+    background:#f97373;
+    color:#450a0a;
+  }
+  .btnSecondary{
+    background:#1f2937;
+    color:#e5e7eb;
+    border:1px solid #22d3ee55;
+  }
+
+  .orderCard,.shopCard,.stockRow,.achRow{
+    border-radius:10px;
+    border:1px solid #22d3ee55;
+    padding:8px;
+    margin-bottom:8px;
+    background:#020617;
+  }
+  .orderTitle{font-weight:bold;margin-bottom:3px;}
+  .meta{font-size:11px;opacity:0.8;}
+
+  /* CUTSCENES */
+  .cutscene{
+    position:absolute;
+    inset:0;
+    background:#020617f0;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:20px;
+  }
+  .cutscene h2{margin-bottom:10px;}
+
+  #drivePanel,#deliverPanel{
+    width:80%;
+    max-width:380px;
+    height:170px;
+    background:#020617;
+    border-radius:12px;
+    border:2px solid #22d3ee;
+    margin-bottom:14px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  #car{
+    position:absolute;
+    bottom:20px;
+    left:-80px;
+    width:70px;
+    height:30px;
+    background:#22c55e;
+    border-radius:10px;
+    box-shadow:0 0 12px #22c55e;
+    animation:drive 2s linear forwards;
+  }
+  @keyframes drive{
+    from{left:-80px;}
+    to{left:100%;}
+  }
+  .roadLine{
+    position:absolute;
+    bottom:10px;
+    width:40px;
+    height:4px;
+    background:#e5e7eb33;
+    animation:road 0.6s linear infinite;
+  }
+  .roadLine:nth-child(2){left:30%;animation-delay:0.2s;}
+  .roadLine:nth-child(3){left:60%;animation-delay:0.4s;}
+  @keyframes road{
+    from{transform:translateX(0);opacity:1;}
+    to{transform:translateX(-60px);opacity:0;}
+  }
+
+  .stars{
+    position:absolute;
+    top:10px;
+    left:10px;
+    font-size:20px;
+  }
+
+  /* SHIFT SUMMARY */
+  #shiftSummary{
+    position:absolute;
+    inset:0;
+    background:#020617f0;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:20px;
+  }
+</style>
+</head>
+<body>
+<div id="game">
+
+  <div id="eventBanner"></div>
+
+  <div id="hud">
+    <div>CookCoin: <span id="coins">0</span></div>
+    <div>Deliveries: <span id="deliveries">0</span></div>
+    <div>Wanted: <span id="wantedLevel">0</span></div>
+    <div>Shift: <span id="shiftTime">180</span>s</div>
+  </div>
+
+  <div id="wantedWall">
+    WANTED<br>Unknown Driver<br>
+    <span id="wantedRisk" style="font-size:10px;">Risk: Low</span>
+  </div>
+
+  <div id="kitchen">
+    <h1>CookCoin Kitchen</h1>
+    <p id="kitchenText">Waiting for DoorDash orders...</p>
+    <div id="counter">Food prepped. Phone will buzz when an order appears.</div>
+  </div>
+
+  <div id="phone">PHONE</div>
+  <button id="supplyBtn">Pick Up Supplies</button>
+
+  <!-- Phone UI -->
+  <div id="phoneScreen">
+    <div id="phoneHeader">
+      <div>CookDash OS</div>
+      <button id="closePhone" class="btn btnDanger" style="padding:5px 9px;font-size:11px;">Close</button>
+    </div>
+    <div id="phoneTabs">
+      <button id="tabOrders" class="tabBtn active">Orders</button>
+      <button id="tabEarnings" class="tabBtn">Earnings</button>
+      <button id="tabShop" class="tabBtn">Shop</button>
+      <button id="tabStocks" class="tabBtn">Stocks</button>
+      <button id="tabAch" class="tabBtn">Achv</button>
+    </div>
+    <div id="phoneBody"></div>
+  </div>
+
+  <!-- Driving cutscene -->
+  <div id="driveScene" class="cutscene">
+    <h2>Driving to Customer...</h2>
+    <div id="drivePanel">
+      <div id="car"></div>
+      <div class="roadLine"></div>
+      <div class="roadLine"></div>
+      <div class="roadLine"></div>
+    </div>
+    <p id="driveText">City lights blur as you chase CookCoin.</p>
+  </div>
+
+  <!-- Delivery cutscene -->
+  <div id="deliverScene" class="cutscene">
+    <h2>Delivery Complete</h2>
+    <div id="deliverPanel">
+      <div class="stars" id="ratingStars">⭐⭐⭐⭐⭐</div>
+    </div>
+    <p id="deliverSummary"></p>
+    <button id="finishBtn" class="btn btnPrimary">Back to Kitchen</button>
+  </div>
+
+  <!-- Shift summary -->
+  <div id="shiftSummary">
+    <h2>Shift Over</h2>
+    <p id="shiftSummaryText"></p>
+    <button id="newShiftBtn" class="btn btnPrimary" style="margin-top:12px;">Start New Shift</button>
+  </div>
+
+</div>
+
+<script>
+/* STATE */
+let coins=0, deliveries=0, wanted=0;
+let shiftTime=180, inShift=true, isNight=false;
+let currentOrder=null, orderAvailable=false;
+let earningsHistory=[];
+let achievements=[];
+let supplies={ingredients:10, boxes:10, fuel:10};
+let incomingSupply=null; // {type, amount, eta, cost}
+let vehicleLevel=0; // 0=foot,1=bike,2=scooter,3=car
+let kitchenLevel=0; // affects ratings
+let lateTimer=null;
+
+/* DATA */
+const restaurants=[
+  {name:"ByteBurger", basePay:10},
+  {name:"PizzaPacket", basePay:8},
+  {name:"SushiOS", basePay:12},
+  {name:"TacoKernel", basePay:9}
+];
+const customers=[
+  {type:"Hungry Gamer", mood:"Chill", tipMin:3, tipMax:7},
+  {type:"Office Worker", mood:"Busy", tipMin:2, tipMax:5},
+  {type:"Angry Karen", mood:"Demanding", tipMin:0, tipMax:3},
+  {type:"College Student", mood:"Grateful", tipMin:4, tipMax:9}
+];
+const vehicleNames=["On Foot","Bike","Scooter","Car"];
+const vehicleSpeedBonus=[0, -2, -4, -6]; // reduces est time
+const kitchenRatingBonus=[0, +0.3, +0.6, +1];
+
+/* ELEMENTS */
+const coinsEl=document.getElementById("coins");
+const deliveriesEl=document.getElementById("deliveries");
+const wantedEl=document.getElementById("wantedLevel");
+const wantedRisk=document.getElementById("wantedRisk");
+const shiftTimeEl=document.getElementById("shiftTime");
+const kitchenEl=document.getElementById("kitchen");
+const kitchenText=document.getElementById("kitchenText");
+const counterEl=document.getElementById("counter");
+const eventBanner=document.getElementById("eventBanner");
+const phone=document.getElementById("phone");
+const phoneScreen=document.getElementById("phoneScreen");
+const phoneBody=document.getElementById("phoneBody");
+const tabOrders=document.getElementById("tabOrders");
+const tabEarnings=document.getElementById("tabEarnings");
+const tabShop=document.getElementById("tabShop");
+const tabStocks=document.getElementById("tabStocks");
+const tabAch=document.getElementById("tabAch");
+const driveScene=document.getElementById("driveScene");
+const deliverScene=document.getElementById("deliverScene");
+const ratingStarsEl=document.getElementById("ratingStars");
+const deliverSummaryEl=document.getElementById("deliverSummary");
+const shiftSummary=document.getElementById("shiftSummary");
+const shiftSummaryText=document.getElementById("shiftSummaryText");
+const supplyBtn=document.getElementById("supplyBtn");
+
+/* UTIL */
+function showBanner(text,color="#22d3ee"){
+  eventBanner.textContent=text;
+  eventBanner.style.borderColor=color;
+  eventBanner.style.display="block";
+  setTimeout(()=>{eventBanner.style.display="none";},3000);
+}
+function updateHUD(){
+  coinsEl.textContent=coins;
+  deliveriesEl.textContent=deliveries;
+  wantedEl.textContent=wanted.toFixed(1);
+  shiftTimeEl.textContent=shiftTime;
+  wantedRisk.textContent=wanted<5?"Risk: Low":wanted<10?"Risk: Medium":"Risk: High";
+}
+
+/* PHONE OPEN/CLOSE */
+phone.onclick=()=>{
+  if(!inShift) return;
+  phoneScreen.style.display="flex";
+  setActiveTab(tabOrders);
+  renderOrdersTab();
+};
+document.getElementById("closePhone").onclick=()=>{
+  phoneScreen.style.display="none";
+};
+
+/* TABS */
+function setActiveTab(tab){
+  [tabOrders,tabEarnings,tabShop,tabStocks,tabAch].forEach(t=>t.classList.remove("active"));
+  tab.classList.add("active");
+}
+tabOrders.onclick=()=>{setActiveTab(tabOrders);renderOrdersTab();};
+tabEarnings.onclick=()=>{setActiveTab(tabEarnings);renderEarningsTab();};
+tabShop.onclick=()=>{setActiveTab(tabShop);renderShopTab();};
+tabStocks.onclick=()=>{setActiveTab(tabStocks);renderStocksTab();};
+tabAch.onclick=()=>{setActiveTab(tabAch);renderAchTab();};
+
+/* ORDERS */
+function createRandomOrder(){
+  const r=restaurants[Math.floor(Math.random()*restaurants.length)];
+  const c=customers[Math.floor(Math.random()*customers.length)];
+  let estTime=Math.floor(Math.random()*15)+10;
+  estTime=Math.max(5, estTime+vehicleSpeedBonus[vehicleLevel]);
+  const distance=(Math.random()*5+1).toFixed(1);
+  return{
+    restaurant:r.name,
+    customer:c.type,
+    mood:c.mood,
+    distance,
+    basePay:r.basePay,
+    estTime,
+    tipMin:c.tipMin,
+    tipMax:c.tipMax,
+    createdAt:Date.now()
+  };
+}
+function maybeSpawnOrder(){
+  if(!inShift) return;
+  if(orderAvailable||currentOrder) return;
+  if(Math.random()<0.5){
+    currentOrder=createRandomOrder();
+    orderAvailable=true;
+    kitchenText.textContent="Phone buzzed! New order available.";
+    if(phoneScreen.style.display==="flex" && tabOrders.classList.contains("active")) renderOrdersTab();
+  }
+}
+function renderOrdersTab(){
+  phoneBody.innerHTML="";
+  if(!orderAvailable||!currentOrder){
+    const p=document.createElement("p");
+    p.textContent="No active orders. Wait for a ping...";
+    phoneBody.appendChild(p);
+    return;
+  }
+  const o=currentOrder;
+  const card=document.createElement("div");
+  card.className="orderCard";
+  card.innerHTML=`
+    <div class="orderTitle">${o.restaurant} → ${o.customer}</div>
+    <div class="meta">Distance: ${o.distance} km • Est: ${o.estTime} min</div>
+    <div class="meta">Base Pay: ${o.basePay} CookCoin</div>
+    <div class="meta">Mood: ${o.mood}</div>
+    <div class="meta">Supplies needed: 1 ingredient, 1 box, 1 fuel</div>
+  `;
+  const btn=document.createElement("button");
+  btn.className="btn btnPrimary";
+  btn.textContent="Accept Delivery";
+  btn.onclick=()=>acceptOrder();
+  card.appendChild(btn);
+  phoneBody.appendChild(card);
+}
+
+/* EARNINGS TAB */
+function renderEarningsTab(){
+  phoneBody.innerHTML="";
+  const p=document.createElement("p");
+  p.textContent=`Total CookCoin: ${coins}`;
+  phoneBody.appendChild(p);
+  if(earningsHistory.length===0){
+    const p2=document.createElement("p");
+    p2.textContent="No deliveries yet this save.";
+    phoneBody.appendChild(p2);
+    return;
+  }
+  earningsHistory.slice().reverse().forEach(e=>{
+    const row=document.createElement("div");
+    row.style.marginTop="6px";
+    row.style.fontSize="11px";
+    row.textContent=`${e.restaurant} → ${e.customer}: +${e.total} (Base ${e.base}, Tip ${e.tip}) ★${e.stars}`;
+    phoneBody.appendChild(row);
+  });
+}
+
+/* SHOP TAB */
+function renderShopTab(){
+  phoneBody.innerHTML="";
+  const vCard=document.createElement("div");
+  vCard.className="shopCard";
+  vCard.innerHTML=`
+    <div class="orderTitle">Vehicle Upgrades</div>
+    <div class="meta">Current: ${vehicleNames[vehicleLevel]}</div>
+  `;
+  if(vehicleLevel<3){
+    const cost=(vehicleLevel+1)*40;
+    const btn=document.createElement("button");
+    btn.className="btn btnSecondary";
+    btn.textContent=`Upgrade to ${vehicleNames[vehicleLevel+1]} (${cost} CookCoin)`;
+    btn.onclick=()=>{
+      if(coins>=cost){
+        coins-=cost;
+        vehicleLevel++;
+        showBanner("Vehicle upgraded to "+vehicleNames[vehicleLevel],"#22c55e");
+        updateHUD();
+        renderShopTab();
+      }else showBanner("Not enough CookCoin","#f97373");
+    };
+    vCard.appendChild(btn);
+  }else{
+    const done=document.createElement("div");
+    done.className="meta";
+    done.textContent="Max vehicle reached.";
+    vCard.appendChild(done);
+  }
+  phoneBody.appendChild(vCard);
+
+  const kCard=document.createElement("div");
+  kCard.className="shopCard";
+  kCard.innerHTML=`
+    <div class="orderTitle">Kitchen Upgrades</div>
+    <div class="meta">Level: ${kitchenLevel}</div>
+  `;
+  if(kitchenLevel<3){
+    const cost=(kitchenLevel+1)*30;
+    const btn=document.createElement("button");
+    btn.className="btn btnSecondary";
+    btn.textContent=`Upgrade Kitchen (${cost} CookCoin)`;
+    btn.onclick=()=>{
+      if(coins>=cost){
+        coins-=cost;
+        kitchenLevel++;
+        showBanner("Kitchen upgraded! Better ratings.","#22c55e");
+        updateHUD();
+        renderShopTab();
+      }else showBanner("Not enough CookCoin","#f97373");
+    };
+    kCard.appendChild(btn);
+  }else{
+    const done=document.createElement("div");
+    done.className="meta";
+    done.textContent="Kitchen fully upgraded.";
+    kCard.appendChild(done);
+  }
+  phoneBody.appendChild(kCard);
+
+  const sCard=document.createElement("div");
+  sCard.className="shopCard";
+  sCard.innerHTML=`
+    <div class="orderTitle">Order Supplies</div>
+    <div class="meta">Each pack: +10 of one supply</div>
+  `;
+  ["ingredients","boxes","fuel"].forEach(type=>{
+    const cost=8;
+    const btn=document.createElement("button");
+    btn.className="btn btnSecondary";
+    btn.style.display="block";
+    btn.style.width="100%";
+    btn.textContent=`Order ${type} pack (+10) — ${cost} CookCoin`;
+    btn.onclick=()=>orderSupply(type,10,cost);
+    sCard.appendChild(btn);
+  });
+  phoneBody.appendChild(sCard);
+}
+
+/* STOCKS TAB */
+function renderStocksTab(){
+  phoneBody.innerHTML="";
+  const p=document.createElement("p");
+  p.textContent="Current supplies:";
+  phoneBody.appendChild(p);
+  Object.keys(supplies).forEach(k=>{
+    const row=document.createElement("div");
+    row.className="stockRow";
+    row.textContent=`${k}: ${supplies[k]}`;
+    phoneBody.appendChild(row);
+  });
+  if(incomingSupply){
+    const info=document.createElement("div");
+    info.className="stockRow";
+    info.textContent=`Incoming: ${incomingSupply.amount} ${incomingSupply.type} (arriving soon)`;
+    phoneBody.appendChild(info);
+  }
+}
+
+/* ACHIEVEMENTS TAB */
+function renderAchTab(){
+  phoneBody.innerHTML="";
+  if(achievements.length===0){
+    const p=document.createElement("p");
+    p.textContent="No achievements unlocked yet.";
+    phoneBody.appendChild(p);
+    return;
+  }
+  achievements.forEach(a=>{
+    const row=document.createElement("div");
+    row.className="achRow";
+    row.textContent=a;
+    phoneBody.appendChild(row);
+  });
+}
+
+/* SUPPLIES */
+function orderSupply(type,amount,cost){
+  if(incomingSupply){
+    showBanner("Supply truck already on the way","#f97373");
+    return;
+  }
+  if(coins<cost){
+    showBanner("Not enough CookCoin","#f97373");
+    return;
+  }
+  coins-=cost;
+  updateHUD();
+  incomingSupply={type,amount,eta:Date.now()+8000,cost};
+  showBanner("Supply truck ordered: "+type,"#22c55e");
+  setTimeout(()=>{
+    if(incomingSupply){
+      supplyBtn.style.display="block";
+      counterEl.textContent="Supply truck arrived! Tap 'Pick Up Supplies'.";
+    }
+  },8000);
+}
+supplyBtn.onclick=()=>{
+  if(!incomingSupply) return;
+  supplies[incomingSupply.type]+=incomingSupply.amount;
+  showBanner(`Picked up ${incomingSupply.amount} ${incomingSupply.type}`,"#22c55e");
+  incomingSupply=null;
+  supplyBtn.style.display="none";
+  counterEl.textContent="Supplies restocked. Ready for more orders.";
+  if(phoneScreen.style.display==="flex" && tabStocks.classList.contains("active")) renderStocksTab();
+};
+
+/* ACCEPT ORDER */
+function acceptOrder(){
+  if(!currentOrder) return;
+  if(supplies.ingredients<=0||supplies.boxes<=0||supplies.fuel<=0){
+    showBanner("Not enough supplies! Buy more in Shop.","#f97373");
+    return;
+  }
+  supplies.ingredients--;
+  supplies.boxes--;
+  supplies.fuel--;
+  if(phoneScreen.style.display==="flex" && tabStocks.classList.contains("active")) renderStocksTab();
+  phoneScreen.style.display="none";
+  orderAvailable=false;
+  kitchenText.textContent="Order accepted. Heading out...";
+  startDriveCutscene();
+  // late delivery timer (simulated)
+  if(lateTimer) clearTimeout(lateTimer);
+  lateTimer=setTimeout(()=>{
+    if(currentOrder){ // still delivering
+      currentOrder.late=true;
+    }
+  }, currentOrder.estTime*1000); // estTime in seconds for simplicity
+}
+
+/* CUTSCENES */
+function startDriveCutscene(){
+  const panel=document.getElementById("drivePanel");
+  panel.innerHTML=`
+    <div id="car"></div>
+    <div class="roadLine"></div>
+    <div class="roadLine"></div>
+    <div class="roadLine"></div>
+  `;
+  driveScene.style.display="flex";
+  setTimeout(()=>{
+    driveScene.style.display="none";
+    startDeliveryCutscene();
+  },2000);
+}
+function startDeliveryCutscene(){
+  const o=currentOrder;
+  if(!o) return;
+  let baseStars=4+Math.random(); // 4–5
+  baseStars+=kitchenRatingBonus[kitchenLevel];
+  if(o.late) baseStars-=2;
+  let stars=Math.round(Math.max(1,Math.min(5,baseStars)));
+  const tip=Math.max(0,Math.floor(Math.random()*(o.tipMax-o.tipMin+1))+o.tipMin-(o.late?2:0));
+  const total=o.basePay+tip;
+  ratingStarsEl.textContent="★★★★★".slice(0,stars);
+  deliverSummaryEl.textContent=
+    `${o.customer} (${o.mood}) gave you ★${stars} and tipped ${tip} CookCoin. Total: +${total}.`+
+    (o.late?" (Late delivery!)":"");
+  deliverScene.dataset.stars=stars;
+  deliverScene.dataset.tip=tip;
+  deliverScene.dataset.total=total;
+  deliverScene.style.display="flex";
+}
+
+/* FINISH DELIVERY */
+document.getElementById("finishBtn").onclick=()=>{
+  const o=currentOrder;
+  if(!o){deliverScene.style.display="none";return;}
+  const stars=Number(deliverScene.dataset.stars||5);
+  const tip=Number(deliverScene.dataset.tip||0);
+  const total=Number(deliverScene.dataset.total||o.basePay);
+  coins+=total;
+  deliveries++;
+  wanted+=stars<=2?2:stars<=3?1:0.3;
+  updateHUD();
+  earningsHistory.push({
+    restaurant:o.restaurant,
+    customer:o.customer,
+    base:o.basePay,
+    tip,
+    total,
+    stars
+  });
+  checkAchievements();
+  currentOrder=null;
+  deliverScene.style.display="none";
+  kitchenText.textContent="Back in the kitchen. Waiting for the next ping...";
+};
+
+/* ACHIEVEMENTS CHECK */
+function addAchievement(name){
+  if(!achievements.includes(name)){
+    achievements.push(name);
+    showBanner("Achievement unlocked: "+name,"#facc15");
+  }
+}
+function checkAchievements(){
+  if(deliveries>=1) addAchievement("First Delivery");
+  if(coins>=100) addAchievement("100 CookCoin Earned");
+  if(wanted>=10) addAchievement("High Risk Driver");
+  if(deliveries>=10) addAchievement("10 Deliveries");
+}
+
+/* RANDOM EVENTS */
+function randomEvent(){
+  if(!inShift) return;
+  const roll=Math.random();
+  if(roll<0.15){
+    // Surge pricing
+    restaurants.forEach(r=>r.basePay+=2);
+    showBanner("Surge pricing! Base pay temporarily increased.","#facc15");
+    setTimeout(()=>restaurants.forEach(r=>r.basePay-=2),15000);
+  }else if(roll<0.25){
+    // Inspector
+    if(wanted>7){
+      showBanner("Inspector found issues. Small fine.","#f97373");
+      coins=Math.max(0,coins-10);
+      updateHUD();
+    }else{
+      showBanner("Inspector visit passed. Reputation up.","#22c55e");
+      wanted=Math.max(0,wanted-1);
+      updateHUD();
+    }
+  }else if(roll<0.35){
+    // Power outage
+    showBanner("Power flicker. Orders spawn slower.","#f97373");
+  }
+}
+
+/* POLICE EVENT */
+function policeCheck(){
+  if(!inShift) return;
+  if(wanted>=12){
+    showBanner("Police at the door. Lay low.","#f97373");
+    inShift=false;
+    shiftSummary.style.display="flex";
+    shiftSummaryText.textContent=
+      `Police shut you down early. Deliveries: ${deliveries}, CookCoin: ${coins.toFixed(0)}, Wanted: ${wanted.toFixed(1)}`;
+  }
+}
+
+/* SHIFT TIMER */
+setInterval(()=>{
+  if(!inShift) return;
+  shiftTime--;
+  if(shiftTime<=0){
+    shiftTime=0;
+    inShift=false;
+    shiftSummary.style.display="flex";
+    shiftSummaryText.textContent=
+      `Shift complete! Deliveries: ${deliveries}, CookCoin: ${coins.toFixed(0)}, Wanted: ${wanted.toFixed(1)}`;
+  }
+  if(shiftTime<90 && !isNight){
+    isNight=true;
+    kitchenEl.classList.add("night");
+    showBanner("Night shift started. Higher pay, higher risk.","#6366f1");
+    restaurants.forEach(r=>r.basePay+=2);
+  }
+  shiftTimeEl.textContent=shiftTime;
+},1000);
+
+/* ORDER SPAWN + EVENTS */
+setInterval(maybeSpawnOrder,4000);
+setInterval(randomEvent,12000);
+setInterval(()=>{
+  if(wanted>0){
+    wanted=Math.max(0,wanted-0.2);
+    updateHUD();
+  }
+  policeCheck();
+},4000);
+
+/* NEW SHIFT BUTTON */
+document.getElementById("newShiftBtn").onclick=()=>{
+  shiftSummary.style.display="none";
+  inShift=true;
+  shiftTime=180;
+  isNight=false;
+  kitchenEl.classList.remove("night");
+  restaurants.forEach(r=>r.basePay=({ByteBurger:10,PizzaPacket:8,SushiOS:12,TacoKernel:9}[r.name]));
+  updateHUD();
+  kitchenText.textContent="New shift started. Waiting for orders...";
+};
+
+/* INIT */
+updateHUD();
+</script>
+</body>
+</html>

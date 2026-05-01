@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CookCoin Delivery Dash — Mobile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#020617;
+    font-family:Arial, sans-serif;
+    color:white;
+    overflow:hidden;
+    touch-action:none;
+  }
+
+  #game {
+    width:100vw;
+    height:100vh;
+    position:relative;
+    overflow:hidden;
+    border:2px solid #22d3ee;
+  }
+
+  /* MAP */
+  #map {
+    position:absolute;
+    inset:0;
+    background:repeating-linear-gradient(
+      0deg,#020617,#020617 25px,#0f172a 25px,#0f172a 50px
+    );
+  }
+
+  /* PLAYER */
+  #player {
+    width:35px;
+    height:35px;
+    background:#22d3ee;
+    border-radius:8px;
+    position:absolute;
+    box-shadow:0 0 15px #22d3ee;
+  }
+
+  /* POIs */
+  .poi {
+    width:55px;
+    height:55px;
+    border-radius:8px;
+    position:absolute;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:10px;
+    padding:3px;
+    text-align:center;
+  }
+  .restaurant { background:#f97316; box-shadow:0 0 15px #f97316; }
+  .customer { background:#22c55e; box-shadow:0 0 15px #22c55e; }
+  .phone { background:#6366f1; box-shadow:0 0 15px #6366f1; }
+  .wanted { background:#b91c1c; box-shadow:0 0 15px #b91c1c; }
+
+  /* HUD */
+  #hud {
+    position:absolute;
+    top:5px;
+    left:5px;
+    right:5px;
+    display:flex;
+    justify-content:space-between;
+    font-size:14px;
+  }
+  #hud span {
+    background:rgba(0,0,0,0.5);
+    padding:5px 8px;
+    border-radius:5px;
+    border:1px solid #22d3ee;
+  }
+
+  /* INFO BAR */
+  #infoBar {
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+    height:60px;
+    background:rgba(0,0,0,0.7);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px;
+    font-size:12px;
+  }
+
+  /* TOUCH CONTROLS */
+  #joystick {
+    position:absolute;
+    bottom:80px;
+    left:20px;
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.1);
+    border:2px solid #22d3ee;
+    touch-action:none;
+  }
+  #stick {
+    width:50px;
+    height:50px;
+    background:#22d3ee;
+    border-radius:50%;
+    position:absolute;
+    left:35px;
+    top:35px;
+  }
+
+  #interactBtn {
+    position:absolute;
+    bottom:90px;
+    right:20px;
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    background:#22c55e;
+    box-shadow:0 0 15px #22c55e;
+    border:none;
+    font-size:20px;
+    color:black;
+  }
+
+  /* CUTSCENE SCREENS */
+  .screen {
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.9);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:20px;
+    z-index:10;
+  }
+  .screen h1 {
+    font-size:32px;
+    margin-bottom:10px;
+    color:#f97316;
+  }
+  .btn {
+    margin-top:15px;
+    padding:10px 20px;
+    border:2px solid #22c55e;
+    background:transparent;
+    color:#22c55e;
+    font-size:18px;
+  }
+</style>
+</head>
+<body>
+
+<div id="game">
+
+  <div id="hud">
+    <span id="money">CookCoin: 0</span>
+    <span id="orders">Orders: 0</span>
+    <span id="timer">Time: 60</span>
+  </div>
+
+  <div id="map">
+    <div id="player"></div>
+    <div id="restaurant" class="poi restaurant">RESTAURANT</div>
+    <div id="customer" class="poi customer">CUSTOMER</div>
+    <div id="phone" class="poi phone">PHONE</div>
+    <div id="wanted1" class="poi wanted">WANTED</div>
+    <div id="wanted2" class="poi wanted">WANTED</div>
+  </div>
+
+  <div id="infoBar">
+    <span id="infoText">Walk to the phone to accept an order.</span>
+  </div>
+
+  <!-- TOUCH CONTROLS -->
+  <div id="joystick"><div id="stick"></div></div>
+  <button id="interactBtn">E</button>
+
+  <!-- CUTSCENES -->
+  <div id="startScreen" class="screen">
+    <h1>CookCoin Delivery Dash</h1>
+    <p>Deliver food. Earn crypto. Avoid the wanted posters.</p>
+    <button class="btn" id="startBtn">Start</button>
+  </div>
+
+  <div id="cutscenePhone" class="screen" style="display:none;">
+    <h1>New Order</h1>
+    <p>DoorDash ping: Pickup at ByteBurger.</p>
+    <button class="btn" id="acceptOrderBtn">Accept</button>
+  </div>
+
+  <div id="cutsceneRestaurant" class="screen" style="display:none;">
+    <h1>Pickup</h1>
+    <p>The cooks shove a hot bag into your hands.</p>
+    <button class="btn" id="gotFoodBtn">Got It</button>
+  </div>
+
+  <div id="cutsceneCustomer" class="screen" style="display:none;">
+    <h1>Delivered</h1>
+    <p>+15 CookCoin</p>
+    <button class="btn" id="finishOrderBtn">Continue</button>
+  </div>
+
+  <div id="endScreen" class="screen" style="display:none;">
+    <h1>Shift Over</h1>
+    <p id="endSummary"></p>
+    <button class="btn" id="restartBtn">Restart</button>
+  </div>
+
+</div>
+
+<script>
+/* GAME STATE */
+const game = {
+  money:0, orders:0, timeLeft:60,
+  hasOrder:false, hasFood:false,
+  speed:2.5, inShift:false
+};
+
+const player = document.getElementById("player");
+let px=150, py=200;
+
+/* POIs */
+const restaurant=document.getElementById("restaurant");
+const customer=document.getElementById("customer");
+const phone=document.getElementById("phone");
+const wanted1=document.getElementById("wanted1");
+const wanted2=document.getElementById("wanted2");
+
+function placePOIs(){
+  restaurant.style.left="20%"; restaurant.style.top="20%";
+  customer.style.left="70%"; customer.style.top="70%";
+  phone.style.left="45%"; phone.style.top="10%";
+  wanted1.style.left="10%"; wanted1.style.top="80%";
+  wanted2.style.left="80%"; wanted2.style.top="15%";
+}
+placePOIs();
+
+/* UPDATE PLAYER */
+function updatePlayer(){
+  player.style.left=px+"px";
+  player.style.top=py+"px";
+}
+
+/* DISTANCE CHECK */
+function near(el,dist=50){
+  const r=el.getBoundingClientRect();
+  const p=player.getBoundingClientRect();
+  const cx=r.left+r.width/2;
+  const cy=r.top+r.height/2;
+  const px=p.left+p.width/2;
+  const py=p.top+p.height/2;
+  return Math.hypot(cx-px,cy-py)<dist;
+}
+
+/* CUTSCENES */
+function show(screen){
+  document.querySelectorAll(".screen").forEach(s=>s.style.display="none");
+  if(screen) screen.style.display="flex";
+}
+
+/* TOUCH JOYSTICK */
+const joy=document.getElementById("joystick");
+const stick=document.getElementById("stick");
+let joyX=0, joyY=0;
+
+joy.addEventListener("touchmove",e=>{
+  const rect=joy.getBoundingClientRect();
+  const t=e.touches[0];
+  const x=t.clientX-rect.left-60;
+  const y=t.clientY-rect.top-60;
+  const d=Math.hypot(x,y);
+  const max=40;
+  const nx=d>max?x/d*max:x;
+  const ny=d>max?y/d*max:y;
+  stick.style.left=(60+nx-25)+"px";
+  stick.style.top=(60+ny-25)+"px";
+  joyX=nx/max;
+  joyY=ny/max;
+});
+
+joy.addEventListener("touchend",()=>{
+  stick.style.left="35px";
+  stick.style.top="35px";
+  joyX=0; joyY=0;
+});
+
+/* MAIN LOOP */
+function loop(){
+  if(game.inShift){
+    px+=joyX*game.speed;
+    py+=joyY*game.speed;
+    updatePlayer();
+  }
+  requestAnimationFrame(loop);
+}
+loop();
+
+/* INTERACT BUTTON */
+document.getElementById("interactBtn").onclick=()=>{
+  if(!game.inShift) return;
+
+  if(!game.hasOrder && near(phone)) show(cutscenePhone);
+  else if(game.hasOrder && !game.hasFood && near(restaurant)) show(cutsceneRestaurant);
+  else if(game.hasOrder && game.hasFood && near(customer)) show(cutsceneCustomer);
+};
+
+/* BUTTON LOGIC */
+startBtn.onclick=()=>{
+  game.inShift=true;
+  game.money=0; game.orders=0; game.timeLeft=60;
+  show(null);
+};
+
+acceptOrderBtn.onclick=()=>{
+  game.hasOrder=true;
+  show(null);
+};
+
+gotFoodBtn.onclick=()=>{
+  game.hasFood=true;
+  show(null);
+};
+
+finishOrderBtn.onclick=()=>{
+  game.hasOrder=false;
+  game.hasFood=false;
+  game.orders++;
+  game.money+=15;
+  document.getElementById("money").textContent="CookCoin: "+game.money;
+  document.getElementById("orders").textContent="Orders: "+game.orders;
+  show(null);
+};
+
+restartBtn.onclick=()=>show(startScreen);
+
+/* TIMER */
+setInterval(()=>{
+  if(!game.inShift) return;
+  game.timeLeft--;
+  document.getElementById("timer").textContent="Time: "+game.timeLeft;
+  if(game.timeLeft<=0){
+    game.inShift=false;
+    endSummary.textContent=`You earned ${game.money} CookCoin and completed ${game.orders} orders.`;
+    show(endScreen);
+  }
+},1000);
+</script>
+
+</body>
+</html>
